@@ -30,24 +30,24 @@ export class SubCategoryController {
   @ApiOperation({
     summary: 'Get a sub-category by ID',
   })
-  @Get('sub-categorie/:subCategorieId')
-  findOneSubCategoryById(@Param('subCategorieId') subCategorieId: string) {
-    return this._subCategoryService.findOneSubCategoryById(subCategorieId);
+  @Get('sub-categorie/:subCategoryId')
+  findOneSubCategoryById(@Param('subCategoryId') subCategoryId: string) {
+    return this._subCategoryService.findOneSubCategoryById(subCategoryId);
   }
 
   @ApiOperation({
     summary: 'Update a sub-category by ID',
   })
-  @Put('sub-categorie/:subCategorieId')
-  updateSubCategoryById(@Param('subCategorieId') subCategorieId: string, @Body() updateSubCategoryDto: UpdateSubCategoryDto) {
-    return this._subCategoryService.updateSubCategoryById(subCategorieId, updateSubCategoryDto);
+  @Put('sub-categorie/:subCategoryId')
+  updateSubCategoryById(@Param('subCategoryId') subCategoryId: string, @Body() updateSubCategoryDto: UpdateSubCategoryDto) {
+    return this._subCategoryService.updateSubCategoryById(subCategoryId, updateSubCategoryDto);
   }
 
   @ApiOperation({
     summary: 'Delete a sub-category by ID',
   })
-  @Delete('sub-categorie/:subCategorieId')
-  deleteSubCategoryById(@Param('subCategorieId') subCategorieId: string) {
-    return this._subCategoryService.deleteSubCategoryById(subCategorieId);
+  @Delete('sub-categorie/:subCategoryId')
+  deleteSubCategoryById(@Param('subCategoryId') subCategoryId: string) {
+    return this._subCategoryService.deleteSubCategoryById(subCategoryId);
   }
 }

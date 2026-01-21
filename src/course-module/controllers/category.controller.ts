@@ -29,27 +29,27 @@ export class CategoryController {
   @ApiOperation({
     summary: 'Get a category by ID',
   })
-  @Get('categorie/:categorieId')
-  findOneCategoryById(@Param('categorieId') categorieId: string) {
-    return this._categoryService.findOneCategoryById(categorieId);
+  @Get('categorie/:categoryId')
+  findOneCategoryById(@Param('categoryId') categoryId: string) {
+    return this._categoryService.findOneCategoryById(categoryId);
   }
 
     @ApiOperation({
       summary: 'Update a category by ID',
     })
-    @Put('categorie/:categorieId')
+    @Put('categorie/:categoryId')
     updateCategoryById(
-      @Param('categorieId') categorieId: string,
+      @Param('categoryId') categoryId: string,
       @Body() updateCategoryDto: UpdateCategoryDto,
     ) {
-      return this._categoryService.updateCategoryById(categorieId, updateCategoryDto);
+      return this._categoryService.updateCategoryById(categoryId, updateCategoryDto);
     }
 
   @ApiOperation({
       summary: 'Delete a category by ID',
     })
-    @Delete('categorie/:categorieId')
-    deleteCategoryById(@Param('categorieId') categorieId: string) {
-      return this._categoryService.deleteCategoryById(categorieId);
+    @Delete('categorie/:categoryId')
+    deleteCategoryById(@Param('categoryId') categoryId: string) {
+      return this._categoryService.deleteCategoryById(categoryId);
     }
 }

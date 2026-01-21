@@ -1,8 +1,8 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { CreateSubCategoryDto, UpdateSubCategoryDto } from '../dtos';
+import { CreateSubCategoryDto, FilterSubCategoryDto, UpdateSubCategoryDto } from '../dtos';
 import { InjectModel } from '@nestjs/mongoose';
 import { Category, SubCategory } from 'src/shared/models';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { PaginationDto } from 'src/shared/dtos/pagination.dto';
 import { responseSortOrder } from 'src/shared/enums/common-enum';
 import { FilterDto } from 'src/shared/dtos/filter.dto';
@@ -21,7 +21,7 @@ export class SubCategoryService {
     const { categoryId, subCategoryName } = createSubCategoryDto;
 
     const category = await this._categoryModel.findOne({
-      categoryId,
+      _id: new Types.ObjectId(categoryId),
       isActive: true,
       isDeleted: false,
     });
@@ -31,7 +31,7 @@ export class SubCategoryService {
     }
 
     const existingSubCategory = await this._subCategoryModel.findOne({
-      categoryId,
+      categoryId: new Types.ObjectId(categoryId).toString(),
       subCategoryName: subCategoryName.trim(),
       isActive: true,
       isDeleted: false,
@@ -42,10 +42,9 @@ export class SubCategoryService {
     }
 
     const subCategory = await this._subCategoryModel.create({
-      categoryId,
+      categoryId:new Types.ObjectId(categoryId).toString(),
       subCategoryName: subCategoryName.trim(),
-      isActive: true,
-      isDeleted: false,
+      description: createSubCategoryDto.description,
     });
 
     const response = {
@@ -56,14 +55,17 @@ export class SubCategoryService {
     return response;
   }
 
-  async findAllSubCategories(paginationDto: PaginationDto, filterDto: FilterDto) {
+  async findAllSubCategories(paginationDto: PaginationDto, filterDto:FilterSubCategoryDto ) {
     const { sortBy, sortOrder } = paginationDto;
-    const { search, isActive } = filterDto;
+    const { search, isActive, categoryId } = filterDto;
 
     const filter: Record<string, any> = {};
 
     if (isActive) {
       filter.isActive = isActive;
+    }
+    if (categoryId) {
+      filter.categoryId = new Types.ObjectId(categoryId).toString();
     }
 
     if (search) {
@@ -93,8 +95,13 @@ export class SubCategoryService {
     return response;
   }
 
-  async findOneSubCategoryById(subCategorieId: string) {
-    const subCategory = await this._subCategoryModel.findById(subCategorieId);
+  async findOneSubCategoryById(subCategoryId: string) {
+    const subCategory = await this._subCategoryModel.findOne({
+      _id: new Types.ObjectId(subCategoryId),
+      isActive: true,
+      isDeleted: false,
+    });
+    
     if (!subCategory) {
       throw new NotFoundException('Sub-category not found');
     }
@@ -105,8 +112,18 @@ export class SubCategoryService {
     return response;
   }
 
-  async updateSubCategoryById(subCategorieId: string, updateSubCategoryDto: UpdateSubCategoryDto) {
-    const subCategory = await this._subCategoryModel.findByIdAndUpdate(subCategorieId, updateSubCategoryDto, { new: true });
+  async updateSubCategoryById(subCategoryId: string, updateSubCategoryDto: UpdateSubCategoryDto) {
+    
+    const subCategory = await this._subCategoryModel.findOneAndUpdate(
+       {
+        _id:new Types.ObjectId(subCategoryId),
+        isDeleted: false,
+      },
+      {
+        $set: updateSubCategoryDto,
+      },
+    );
+
     if (!subCategory) {
       throw new NotFoundException('Sub-category not found');
     }
@@ -120,7 +137,7 @@ export class SubCategoryService {
   async deleteSubCategoryById(subCategoryId: string) {
     const subCategory = await this._subCategoryModel.findOneAndUpdate(
       {
-        subCategoryId,
+        _id:new Types.ObjectId(subCategoryId),
         isDeleted: false,
       },
       {
