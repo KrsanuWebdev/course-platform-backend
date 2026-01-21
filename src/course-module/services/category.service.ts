@@ -23,7 +23,7 @@ export class CategoryService {
     });
 
     if (existingCategory) {
-      throw new ConflictException(`Sub-category '${createCategoryDto.categoryName}' already exists under this category`);
+      throw new ConflictException(`Category '${createCategoryDto.categoryName}' already exists`);
     }
     const category = await this._categoryModel.create(createCategoryDto);
     const response = {
@@ -35,18 +35,18 @@ export class CategoryService {
 
   async findAllCategories(paginationDto: PaginationDto, filterDto: FilterDto) {
     const { sortBy, sortOrder } = paginationDto;
-    const { search, isActive } = filterDto;
+    const { search, isActive = true } = filterDto;
 
     const filter: Record<string, any> = {};
 
-    if (isActive) {
-      filter.isActive = isActive;
-    }
+  if (typeof isActive === 'boolean') {
+  filter.isActive = isActive;
+}
 
     if (search) {
       filter.categoryName = { $regex: search, $options: 'i' };
     }
-
+  console.log('filter',filter);
     const query = this._categoryModel.find(filter);
 
     if (sortBy) {
@@ -78,7 +78,7 @@ export class CategoryService {
     });
 
     if (!category) {
-      throw new Error('Category not found');
+      throw new NotFoundException('Category not found');
     }
     const response = {
       message: 'Category retrieved successfully',
@@ -98,7 +98,7 @@ export class CategoryService {
       },
     );
     if (!category) {
-      throw new Error('Category not found');
+      throw new NotFoundException('Category not found');
     }
     const response = {
       message: 'Category updated successfully',

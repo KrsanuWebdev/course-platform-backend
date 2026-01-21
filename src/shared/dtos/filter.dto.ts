@@ -9,7 +9,11 @@ export class FilterDto {
   search?: string;
 
   @IsOptional()
-  @Transform(({ value }) => value === 'true')
+  @Transform(({ value }) => {
+    if (value === true || value === 'true') return true;
+    if (value === false || value === 'false') return false;
+    return value;
+  })
   @IsBoolean()
   @ApiProperty({ required: false, example: true })
   isActive?: boolean;

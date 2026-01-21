@@ -42,7 +42,7 @@ export class SubCategoryService {
     }
 
     const subCategory = await this._subCategoryModel.create({
-      categoryId:new Types.ObjectId(categoryId).toString(),
+      categoryId: new Types.ObjectId(categoryId).toString(),
       subCategoryName: subCategoryName.trim(),
       description: createSubCategoryDto.description,
     });
@@ -55,13 +55,13 @@ export class SubCategoryService {
     return response;
   }
 
-  async findAllSubCategories(paginationDto: PaginationDto, filterDto:FilterSubCategoryDto ) {
+  async findAllSubCategories(paginationDto: PaginationDto, filterDto: FilterSubCategoryDto) {
     const { sortBy, sortOrder } = paginationDto;
     const { search, isActive, categoryId } = filterDto;
 
     const filter: Record<string, any> = {};
 
-    if (isActive) {
+    if (typeof isActive === 'boolean') {
       filter.isActive = isActive;
     }
     if (categoryId) {
@@ -72,7 +72,11 @@ export class SubCategoryService {
       filter.subCategoryName = { $regex: search, $options: 'i' };
     }
 
-    const query = this._subCategoryModel.find(filter);
+    const query = this._subCategoryModel.find(filter).populate({
+      path: 'categoryId',
+      select: 'categoryName', // ONLY what you need
+      match: { isActive: true, isDeleted: false },
+    });
 
     if (sortBy) {
       query.sort({
@@ -96,12 +100,18 @@ export class SubCategoryService {
   }
 
   async findOneSubCategoryById(subCategoryId: string) {
-    const subCategory = await this._subCategoryModel.findOne({
-      _id: new Types.ObjectId(subCategoryId),
-      isActive: true,
-      isDeleted: false,
-    });
-    
+    const subCategory = await this._subCategoryModel
+      .findOne({
+        _id: new Types.ObjectId(subCategoryId),
+        isActive: true,
+        isDeleted: false,
+      })
+      .populate({
+        path: 'categoryId',
+        select: 'categoryName',
+        match: { isActive: true, isDeleted: false },
+      });
+
     if (!subCategory) {
       throw new NotFoundException('Sub-category not found');
     }
@@ -113,10 +123,9 @@ export class SubCategoryService {
   }
 
   async updateSubCategoryById(subCategoryId: string, updateSubCategoryDto: UpdateSubCategoryDto) {
-    
     const subCategory = await this._subCategoryModel.findOneAndUpdate(
-       {
-        _id:new Types.ObjectId(subCategoryId),
+      {
+        _id: new Types.ObjectId(subCategoryId),
         isDeleted: false,
       },
       {
@@ -137,7 +146,7 @@ export class SubCategoryService {
   async deleteSubCategoryById(subCategoryId: string) {
     const subCategory = await this._subCategoryModel.findOneAndUpdate(
       {
-        _id:new Types.ObjectId(subCategoryId),
+        _id: new Types.ObjectId(subCategoryId),
         isDeleted: false,
       },
       {

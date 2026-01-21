@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-import {  IsOptional, IsString } from 'class-validator';
+import { IsMongoId, IsOptional, IsString } from 'class-validator';
 
 export class UpdateSubCategoryDto {
   @IsString()
@@ -8,7 +8,7 @@ export class UpdateSubCategoryDto {
   @ApiProperty({ required: false })
   subCategoryName?: string;
 
-  @IsString()
+  @IsMongoId({ message: 'categoryId must be a valid MongoDB ObjectId' })
   @IsOptional()
   @ApiProperty({ required: false })
   categoryId?: string;
