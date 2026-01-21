@@ -1,46 +1,55 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, Param, Put, Delete } from '@nestjs/common';
 import { CategoryService } from '../services';
-import { CreateCategoryDto } from '../dtos';
-import { ApiOperation } from '@nestjs/swagger';
+import { CreateCategoryDto, UpdateCategoryDto } from '../dtos';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { PaginationDto } from 'src/shared/dtos/pagination.dto';
+import { FilterDto } from 'src/shared/dtos/filter.dto';
 
+@ApiTags('Category Module')
 @Controller('/')
 export class CategoryController {
   constructor(private readonly _categoryService: CategoryService) {}
 
   @ApiOperation({
-      summary: 'Create a new category',
-    })
-  @Post()
+    summary: 'Create a new category',
+  })
+  @Post('categorie')
   async createCategory(@Body() createCategoryDto: CreateCategoryDto) {
     return await this._categoryService.createCategory(createCategoryDto);
   }
 
-  //   @Get()
-  //   findAll(@Query() query: PaginationDto) {
-  //     return this.categoryService.findAll(query);
-  //   }
+  @ApiOperation({
+    summary: 'Get all categories',
+  })
+  @Get('categories')
+  findAllCategories(@Query() query: PaginationDto, @Query() filter: FilterDto) {
+    return this._categoryService.findAllCategories(query, filter);
+  }
 
-  //   @Get('with-subcategory-count')
-  //   getWithSubCategoryCount() {
-  //     return this.categoryService.getWithSubCategoryCount();
-  //   }
+  @ApiOperation({
+    summary: 'Get a category by ID',
+  })
+  @Get('categorie/:categorieId')
+  findOneCategoryById(@Param('categorieId') categorieId: string) {
+    return this._categoryService.findOneCategoryById(categorieId);
+  }
 
-  //   @Get(':id')
-  //   findOne(@Param('id') id: string) {
-  //     return this.categoryService.findById(id);
-  //   }
+    @ApiOperation({
+      summary: 'Update a category by ID',
+    })
+    @Put('categorie/:categorieId')
+    updateCategoryById(
+      @Param('categorieId') categorieId: string,
+      @Body() updateCategoryDto: UpdateCategoryDto,
+    ) {
+      return this._categoryService.updateCategoryById(categorieId, updateCategoryDto);
+    }
 
-  //   @Put(':id')
-  //   update(
-  //     @Param('id') id: string,
-  //     @Body() dto: UpdateCategoryDto,
-  //   ) {
-  //     return this.categoryService.update(id, dto);
-  //   }
-
-  //   @Delete(':id')
-  //   @HttpCode(HttpStatus.NO_CONTENT)
-  //   remove(@Param('id') id: string) {
-  //     return this.categoryService.softDelete(id);
-  //   }
+  @ApiOperation({
+      summary: 'Delete a category by ID',
+    })
+    @Delete('categorie/:categorieId')
+    deleteCategoryById(@Param('categorieId') categorieId: string) {
+      return this._categoryService.deleteCategoryById(categorieId);
+    }
 }

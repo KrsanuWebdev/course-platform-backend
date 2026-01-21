@@ -26,6 +26,7 @@ async function configureSwagger(app: any) {
     let document = SwaggerModule.createDocument(app, options);
     document.tags = [
       { name: 'App Module', description: "Application Core API'S" },
+      { name: 'Category Module', description: "APIs for Category management" },
     ];
 
     SwaggerModule.setup('swagger', app, document);
