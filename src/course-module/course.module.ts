@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { CategoryController, SubCategoryController } from './controllers';
-import { CategoryService, SubCategoryService } from './services';
-import { CategorySchema, SubCategorySchema } from 'src/shared/models';
+import { CategoryController, SubCategoryController, CourseController } from './controllers';
+import { CategoryService, SubCategoryService, CourseService } from './services';
+import { CategorySchema, SubCategorySchema, CourseSchema } from 'src/shared/models';
 import { DatabaseModule } from 'src/shared/modules/database.module';
 import { MongooseModule } from '@nestjs/mongoose';
 
@@ -11,10 +11,10 @@ import { MongooseModule } from '@nestjs/mongoose';
     MongooseModule.forFeature([
       { name: 'Category', schema: CategorySchema },
       { name: 'SubCategory', schema: SubCategorySchema },
-
+      { name: 'Course', schema: CourseSchema },
     ]),
   ],
-  controllers: [CategoryController,SubCategoryController],
-  providers: [CategoryService,SubCategoryService],
+  controllers: [CategoryController, SubCategoryController, CourseController],
+  providers: [CategoryService, SubCategoryService, CourseService],
 })
 export class CourseModule {}
