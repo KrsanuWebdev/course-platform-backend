@@ -28,7 +28,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
           },
           serverSelectionTimeoutMS: 5000,
           connectionFactory: (connection) => {
-            console.log(`✅ Connected to database: ${connection.name}`);
+            console.log(`Connected to database: ${connection.name}`);
 
             connection.on('connected', () =>
               console.log('MongoDB connection established'),

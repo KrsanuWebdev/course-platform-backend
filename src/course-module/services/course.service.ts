@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { CreateCourseDto, UpdateCourseDto } from '../dtos';
+import { CreateCourseDto, FilterCourseDto, UpdateCourseDto } from '../dtos';
 import { InjectModel } from '@nestjs/mongoose';
 import { Category, SubCategory, Course } from 'src/shared/models';
 import { Model, Types } from 'mongoose';
@@ -38,7 +38,7 @@ export class CourseService {
       throw new BadRequestException('One or more sub-categories are invalid or inactive');
     }
 
-    // Ensure every sub-category belongs to one of the allowed categories
+    
     const allowedSet = new Set(allowedCategoryIds.map((id) => id.toString()));
     for (const sc of subCategories) {
       const scCat = sc.categoryId ? sc.categoryId.toString() : null;
@@ -52,14 +52,14 @@ export class CourseService {
   async createCourse(createCourseDto: CreateCourseDto) {
     const { categoryIds, subCategoryIds } = createCourseDto;
 
-    // Validate categories
+ 
     await this.validateCategories(categoryIds);
 
-    // Validate subCategories and ownership
+    
     await this.validateSubCategories(subCategoryIds || [], categoryIds);
 
     const course = await this._courseModel.create({
-      title: createCourseDto.title,
+      courseName: createCourseDto.courseName,
       description: createCourseDto.description,
       categories: categoryIds.map((id) => new Types.ObjectId(id)),
       subCategories: (subCategoryIds || []).map((id) => new Types.ObjectId(id)),
@@ -72,9 +72,9 @@ export class CourseService {
     return response;
   }
 
-  async findAllCourses(paginationDto: PaginationDto, filterDto: FilterDto) {
+  async findAllCourses(paginationDto: PaginationDto, filterDto: FilterCourseDto) {
     const { sortBy, sortOrder } = paginationDto;
-    const { search, isActive = true } = filterDto;
+    const { search, isActive = true, categoryId, subCategoryId } = filterDto;
 
     const filter: Record<string, any> = {};
 
@@ -83,9 +83,15 @@ export class CourseService {
     }
 
     if (search) {
-      filter.title = { $regex: search, $options: 'i' };
+      filter.courseName = { $regex: search, $options: 'i' };
+    }
+    if (categoryId) {
+      filter.categories = new Types.ObjectId(categoryId);
     }
 
+    if (subCategoryId) {
+      filter.subCategories = new Types.ObjectId(subCategoryId);
+    }
     const query = this._courseModel
       .find(filter)
       .populate({
@@ -95,7 +101,7 @@ export class CourseService {
       })
       .populate({
         path: 'subCategories',
-        select: 'subCategoryName categoryId',
+        select: 'subCategoryName',
         match: { isActive: true, isDeleted: false },
       });
 
@@ -162,7 +168,7 @@ export class CourseService {
     }
 
     const update: any = {};
-    if (updateCourseDto.title) update.title = updateCourseDto.title;
+    if (updateCourseDto.courseName) update.courseName = updateCourseDto.courseName;
     if (updateCourseDto.description) update.description = updateCourseDto.description;
     if (updateCourseDto.categoryIds) update.categories = updateCourseDto.categoryIds.map((id) => new Types.ObjectId(id));
     if (updateCourseDto.subCategoryIds) update.subCategories = updateCourseDto.subCategoryIds.map((id) => new Types.ObjectId(id));

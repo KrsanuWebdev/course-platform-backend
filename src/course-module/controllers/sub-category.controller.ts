@@ -23,8 +23,8 @@ export class SubCategoryController {
     summary: 'Get all sub-categories',
   })
   @Get('sub-categories')
-  findAllSubCategories(@Query() query: PaginationDto, @Query() filter: FilterSubCategoryDto) {
-    return this._subCategoryService.findAllSubCategories(query, filter);
+  findAllSubCategories(@Query() paginationDto: PaginationDto, @Query() filter: FilterSubCategoryDto) {
+    return this._subCategoryService.findAllSubCategories(paginationDto, filter);
   }
 
   @ApiOperation({

@@ -1,9 +1,9 @@
 import { Controller, Get, Post, Body, Query, Param, Put, Delete } from '@nestjs/common';
 import { CourseService } from '../services';
-import { CreateCourseDto, UpdateCourseDto } from '../dtos';
+import { CreateCourseDto, FilterCourseDto, UpdateCourseDto } from '../dtos';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PaginationDto } from 'src/shared/dtos/pagination.dto';
-import { FilterDto } from 'src/shared/dtos/filter.dto';
+
 
 @ApiTags('Course Module')
 @Controller('/')
@@ -22,8 +22,8 @@ export class CourseController {
     summary: 'Get all courses',
   })
   @Get('courses')
-  findAllCourses(@Query() query: PaginationDto, @Query() filter: FilterDto) {
-    return this._courseService.findAllCourses(query, filter);
+  findAllCourses(@Query() paginationDto: PaginationDto, @Query() filter: FilterCourseDto) {
+    return this._courseService.findAllCourses(paginationDto, filter);
   }
 
   @ApiOperation({

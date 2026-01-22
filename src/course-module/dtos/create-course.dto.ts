@@ -7,9 +7,9 @@ export class CreateCourseDto {
   @ApiProperty({
     required: true,
     example: 'JAVA Backend Development',
-    description: 'Course title',
+    description: 'Course name',
   })
-  title: string;
+  courseName: string;
 
   @IsString()
   @IsNotEmpty()

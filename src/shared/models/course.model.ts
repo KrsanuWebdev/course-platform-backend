@@ -4,7 +4,7 @@ import { Document, Types } from 'mongoose';
 @Schema({ timestamps: true, collection: 'courses' })
 export class Course extends Document {
   @Prop({ required: true })
-  title: string;
+  courseName: string;
 
   @Prop()
   description?: string;

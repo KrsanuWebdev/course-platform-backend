@@ -73,8 +73,8 @@ export class SubCategoryService {
     }
 
     const query = this._subCategoryModel.find(filter).populate({
-      path: 'categoryId',
-      select: 'categoryName', // ONLY what you need
+      path: 'Category',
+      select: 'categoryName', 
       match: { isActive: true, isDeleted: false },
     });
 

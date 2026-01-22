@@ -22,8 +22,8 @@ export class CategoryController {
     summary: 'Get all categories',
   })
   @Get('categories')
-  findAllCategories(@Query() query: PaginationDto, @Query() filter: FilterDto) {
-    return this._categoryService.findAllCategories(query, filter);
+  findAllCategories(@Query() paginationDto: PaginationDto, @Query() filter: FilterDto) {
+    return this._categoryService.findAllCategories(paginationDto, filter);
   }
 
   @ApiOperation({
