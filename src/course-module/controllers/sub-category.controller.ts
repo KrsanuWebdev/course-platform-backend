@@ -3,7 +3,7 @@ import { SubCategoryService } from '../services';
 
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PaginationDto } from 'src/shared/dtos/pagination.dto';
-import { FilterDto } from 'src/shared/dtos/filter.dto';
+
 import { CreateSubCategoryDto, FilterSubCategoryDto, UpdateSubCategoryDto } from '../dtos';
 
 @ApiTags('SubCategory Module')

@@ -102,7 +102,7 @@ export class CategoryService {
     }
     const response = {
       message: 'Category updated successfully',
-      data: category,
+      
     };
     return response;
   }

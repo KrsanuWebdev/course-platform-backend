@@ -73,7 +73,7 @@ export class SubCategoryService {
     }
 
     const query = this._subCategoryModel.find(filter).populate({
-      path: 'Category',
+      path: 'categoryId',
       select: 'categoryName', 
       match: { isActive: true, isDeleted: false },
     });
@@ -138,7 +138,7 @@ export class SubCategoryService {
     }
     const response = {
       message: 'Sub-category updated successfully',
-      data: subCategory,
+      
     };
     return response;
   }

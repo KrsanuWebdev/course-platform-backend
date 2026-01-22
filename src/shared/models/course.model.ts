@@ -9,10 +9,10 @@ export class Course extends Document {
   @Prop()
   description?: string;
 
-  @Prop({ type: [Types.ObjectId], ref: 'Category', default: [] })
+  @Prop({ type: [Types.ObjectId], ref: 'Category', required: true, index: true })
   categories: Types.ObjectId[];
 
-  @Prop({ type: [Types.ObjectId], ref: 'SubCategory', default: [] })
+  @Prop({ type: [Types.ObjectId], ref: 'SubCategory', required: true, index: true })
   subCategories: Types.ObjectId[];
 
   @Prop({ default: true })

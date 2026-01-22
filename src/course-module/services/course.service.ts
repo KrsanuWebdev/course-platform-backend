@@ -7,56 +7,24 @@ import { PaginationDto } from 'src/shared/dtos/pagination.dto';
 import { responseSortOrder } from 'src/shared/enums/common-enum';
 import { FilterDto } from 'src/shared/dtos/filter.dto';
 import { commanPaginationLogic } from 'src/shared/utils';
+import { CourseHelpherService } from 'src/shared/services/course.helpher.service';
 
 @Injectable()
 export class CourseService {
   constructor(
     @InjectModel(Course.name)
     private readonly _courseModel: Model<Course>,
-    @InjectModel(Category.name)
-    private readonly _categoryModel: Model<Category>,
-    @InjectModel(SubCategory.name)
-    private readonly _subCategoryModel: Model<SubCategory>,
+
+    private readonly _courseHelpherService: CourseHelpherService,
   ) {}
 
-  private async validateCategories(categoryIds: string[]) {
-    const uniqueIds = Array.from(new Set(categoryIds));
-    const objectIds = uniqueIds.map((id) => new Types.ObjectId(id));
-    const categories = await this._categoryModel.find({ _id: { $in: objectIds }, isActive: true, isDeleted: false });
-    if (categories.length !== uniqueIds.length) {
-      throw new BadRequestException('One or more categories are invalid or inactive');
-    }
-    return categories;
-  }
-
-  private async validateSubCategories(subCategoryIds: string[], allowedCategoryIds: string[]) {
-    if (!subCategoryIds || subCategoryIds.length === 0) return [];
-    const uniqueSubIds = Array.from(new Set(subCategoryIds));
-    const objectIds = uniqueSubIds.map((id) => new Types.ObjectId(id));
-    const subCategories = await this._subCategoryModel.find({ _id: { $in: objectIds }, isActive: true, isDeleted: false });
-    if (subCategories.length !== uniqueSubIds.length) {
-      throw new BadRequestException('One or more sub-categories are invalid or inactive');
-    }
-
-    
-    const allowedSet = new Set(allowedCategoryIds.map((id) => id.toString()));
-    for (const sc of subCategories) {
-      const scCat = sc.categoryId ? sc.categoryId.toString() : null;
-      if (!scCat || !allowedSet.has(scCat)) {
-        throw new BadRequestException('All selected sub-categories must belong to the selected categories');
-      }
-    }
-    return subCategories;
-  }
-
   async createCourse(createCourseDto: CreateCourseDto) {
-    const { categoryIds, subCategoryIds } = createCourseDto;
+    const { courseName, categoryIds, subCategoryIds } = createCourseDto;
 
- 
-    await this.validateCategories(categoryIds);
+    await this._courseHelpherService.validateCategories(categoryIds);
 
-    
-    await this.validateSubCategories(subCategoryIds || [], categoryIds);
+    await this._courseHelpherService.validateSubCategories(subCategoryIds || [], categoryIds);
+    await this._courseHelpherService.validateCourseNameUniqueness(courseName, categoryIds, subCategoryIds);
 
     const course = await this._courseModel.create({
       courseName: createCourseDto.courseName,
@@ -140,7 +108,7 @@ export class CourseService {
       })
       .populate({
         path: 'subCategories',
-        select: 'subCategoryName categoryId',
+        select: 'subCategoryName',
         match: { isActive: true, isDeleted: false },
       });
 
@@ -156,42 +124,69 @@ export class CourseService {
   }
 
   async updateCourseById(courseId: string, updateCourseDto: UpdateCourseDto) {
-    if (updateCourseDto.categoryIds) {
-      await this.validateCategories(updateCourseDto.categoryIds);
+    if (!Types.ObjectId.isValid(courseId)) {
+      throw new BadRequestException('Invalid courseId');
     }
 
-    if (updateCourseDto.subCategoryIds) {
-      const course = await this._courseModel.findById(courseId);
-      if (!course) throw new NotFoundException('Course not found');
-      const allowed = updateCourseDto.categoryIds ? updateCourseDto.categoryIds : course.categories.map((c) => c.toString());
-      await this.validateSubCategories(updateCourseDto.subCategoryIds, allowed as string[]);
-    }
-
-    const update: any = {};
-    if (updateCourseDto.courseName) update.courseName = updateCourseDto.courseName;
-    if (updateCourseDto.description) update.description = updateCourseDto.description;
-    if (updateCourseDto.categoryIds) update.categories = updateCourseDto.categoryIds.map((id) => new Types.ObjectId(id));
-    if (updateCourseDto.subCategoryIds) update.subCategories = updateCourseDto.subCategoryIds.map((id) => new Types.ObjectId(id));
-
-    const course = await this._courseModel.findOneAndUpdate(
-      {
-        _id: new Types.ObjectId(courseId),
-        isDeleted: false,
-      },
-      {
-        $set: update,
-      },
-    );
+    const course = await this._courseModel.findOne({
+      _id: new Types.ObjectId(courseId),
+      isDeleted: false,
+    });
 
     if (!course) {
       throw new NotFoundException('Course not found');
     }
 
-    const response = {
+    const finalCategoryIds = updateCourseDto.categoryIds ? updateCourseDto.categoryIds : course.categories.map((id) => id.toString());
+
+    const finalSubCategoryIds = updateCourseDto.subCategoryIds ? updateCourseDto.subCategoryIds : course.subCategories.map((id) => id.toString());
+
+    if (updateCourseDto.categoryIds) {
+      await this._courseHelpherService.validateCategories(updateCourseDto.categoryIds);
+    }
+
+    if (updateCourseDto.subCategoryIds) {
+      await this._courseHelpherService.validateSubCategories(updateCourseDto.subCategoryIds, finalCategoryIds);
+    }
+
+    if (updateCourseDto.courseName || updateCourseDto.categoryIds || updateCourseDto.subCategoryIds) {
+      await this._courseHelpherService.validateCourseNameUniqueness(updateCourseDto.courseName ?? course.courseName, finalCategoryIds, finalSubCategoryIds, courseId);
+    }
+
+    const update: Record<string, any> = {};
+
+    if (updateCourseDto.courseName !== undefined) {
+      update.courseName = updateCourseDto.courseName.trim();
+    }
+
+    if (updateCourseDto.description !== undefined) {
+      update.description = updateCourseDto.description;
+    }
+
+    if (updateCourseDto.categoryIds) {
+      update.categories = updateCourseDto.categoryIds.map((id) => new Types.ObjectId(id));
+    }
+
+    if (updateCourseDto.subCategoryIds) {
+      update.subCategories = updateCourseDto.subCategoryIds.map((id) => new Types.ObjectId(id));
+    }
+
+    if (Object.keys(update).length === 0) {
+      throw new BadRequestException('No valid fields provided for update');
+    }
+
+    await this._courseModel.findByIdAndUpdate(
+      course._id,
+      { $set: update },
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
+
+    return {
       message: 'Course updated successfully',
-      data: course,
     };
-    return response;
   }
 
   async deleteCourseById(courseId: string) {

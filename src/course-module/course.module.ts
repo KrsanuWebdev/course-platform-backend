@@ -4,6 +4,7 @@ import { CategoryService, SubCategoryService, CourseService } from './services';
 import { CategorySchema, SubCategorySchema, CourseSchema } from 'src/shared/models';
 import { DatabaseModule } from 'src/shared/modules/database.module';
 import { MongooseModule } from '@nestjs/mongoose';
+import { CourseHelpherService } from 'src/shared/services/course.helpher.service';
 
 @Module({
   imports: [
@@ -15,6 +16,6 @@ import { MongooseModule } from '@nestjs/mongoose';
     ]),
   ],
   controllers: [CategoryController, SubCategoryController, CourseController],
-  providers: [CategoryService, SubCategoryService, CourseService],
+  providers: [CategoryService, SubCategoryService, CourseService,CourseHelpherService],
 })
 export class CourseModule {}

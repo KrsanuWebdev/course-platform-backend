@@ -14,6 +14,8 @@ export class SubCategory extends Document {
   })
   categoryId: Types.ObjectId;
 
+  
+
   @Prop({ required: true })
   description?: string;
 
