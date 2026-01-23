@@ -18,26 +18,45 @@ export class CourseService {
     private readonly _courseHelpherService: CourseHelpherService,
   ) {}
 
+
+
   async createCourse(createCourseDto: CreateCourseDto) {
-    const { courseName, categoryIds, subCategoryIds } = createCourseDto;
+    const session = await this._courseModel.db.startSession();
+    session.startTransaction();
 
-    await this._courseHelpherService.validateCategories(categoryIds);
+    try {
+      const { courseName, categoryIds, subCategoryIds } = createCourseDto;
 
-    await this._courseHelpherService.validateSubCategories(subCategoryIds || [], categoryIds);
-    await this._courseHelpherService.validateCourseNameUniqueness(courseName, categoryIds, subCategoryIds);
+      await this._courseHelpherService.validateCategories(categoryIds, session);
 
-    const course = await this._courseModel.create({
-      courseName: createCourseDto.courseName,
-      description: createCourseDto.description,
-      categories: categoryIds.map((id) => new Types.ObjectId(id)),
-      subCategories: (subCategoryIds || []).map((id) => new Types.ObjectId(id)),
-    });
+      await this._courseHelpherService.validateSubCategories(subCategoryIds || [], categoryIds, session);
 
-    const response = {
-      message: 'Course created successfully',
-      data: course,
-    };
-    return response;
+      await this._courseHelpherService.validateCourseNameUniqueness(courseName, categoryIds, subCategoryIds, undefined, session);
+
+      const [course] = await this._courseModel.create(
+        [
+          {
+            courseName,
+            description: createCourseDto.description,
+            categories: categoryIds.map((id) => new Types.ObjectId(id)),
+            subCategories: (subCategoryIds || []).map((id) => new Types.ObjectId(id)),
+          },
+        ],
+        { session },
+      );
+
+      await session.commitTransaction();
+      session.endSession();
+
+      return {
+        message: 'Course created successfully',
+        data: course,
+      };
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
   }
 
   async findAllCourses(paginationDto: PaginationDto, filterDto: FilterCourseDto) {
